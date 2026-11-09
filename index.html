@@ -58,11 +58,11 @@ h2{margin:4px 0 12px;font-size:21px;color:var(--cyan)}
 const $=id=>document.getElementById(id),R=(a,b)=>a+Math.random()*(b-a),RI=(a,b)=>Math.floor(R(a,b+1));
 // CONFIGURACIÓN: reemplaza estos valores por los de tu proyecto Firebase.
 const firebaseConfig = {
-  apiKey: "PEGA_AQUI_TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-  projectId: "TU_PROYECTO",
-  appId: "PEGA_AQUI_TU_APP_ID"
+  apiKey: "AIzaSyADntgqNbUbcvYaAdoeh6M3KATojhcJmxk",
+  authDomain: "cuenta-la-fruta.firebaseapp.com",
+  databaseURL: "https://cuenta-la-fruta-default-rtdb.firebaseio.com",
+  projectId: "cuenta-la-fruta",
+  appId: "1:257009462532:web:da749d2666b5dccdccb451"
 };
 let db=null, roomRef=null, roomId=null, playerId=null, isHost=false, onlineReady=false;
 let playerName="Jugador", playerOrder=[], lastStateKey="", lastPublish=0, lastStatePublish=0;
@@ -181,17 +181,12 @@ function applyRemoteGameState(st){
 
 const QC=['#ff7a8a','#6bb6ff','#5fe39a','#ffd23f'];
 const QS=[
-{q:'Gráfico de barras — Ventas: lunes 12, martes 18, miércoles 9, jueves 24 y viernes 15. ¿Qué día tuvo más ventas?',o:['Jueves','Martes','Viernes','Miércoles'],t:60},
-{q:'Gráfico circular — Deportes favoritos: fútbol 40 %, básquetbol 25 %, vóleibol 20 % y tenis 15 %. ¿Qué deporte tiene el sector más pequeño?',o:['Tenis','Vóleibol','Básquetbol','Fútbol'],t:60},
-{q:'Gráfico de líneas — Temperatura: lunes 18 °C, martes 20 °C, miércoles 23 °C, jueves 21 °C y viernes 26 °C. ¿Qué día alcanzó el máximo?',o:['Viernes','Miércoles','Jueves','Martes'],t:60},
-{q:'Gráfico de barras — Libros leídos: Ana 5, Bruno 3, Carla 8 y Diego 6. ¿Quién leyó más libros?',o:['Carla','Diego','Ana','Bruno'],t:60},
-{q:'Gráfico circular — Transporte escolar: autobús 50 %, caminando 25 %, bicicleta 15 % y automóvil 10 %. ¿Cuál es la segunda categoría más frecuente?',o:['Caminando','Bicicleta','Automóvil','Autobús'],t:60},
-{q:'Gráfico de líneas — Visitantes al museo: lunes 10, martes 15, miércoles 15 y jueves 22. ¿Entre qué días la cantidad se mantuvo igual?',o:['Martes y miércoles','Lunes y martes','Miércoles y jueves','Lunes y jueves'],t:60},
-{q:'Gráfico de barras — Puntos por equipo: rojo 7, azul 11, verde 5 y amarillo 9. ¿Qué equipo quedó en segundo lugar?',o:['Amarillo','Rojo','Verde','Azul'],t:60},
-{q:'Gráfico circular — Gastos: alimentación 35 %, vivienda 30 %, transporte 20 % y ocio 15 %. ¿Qué categoría representa el 30 %?',o:['Vivienda','Transporte','Ocio','Alimentación'],t:60},
-{q:'Gráfico de líneas — Lluvia mensual: enero 5 mm, febrero 10 mm, marzo 8 mm, abril 14 mm y mayo 14 mm. ¿En qué dos meses llovió lo mismo?',o:['Abril y mayo','Enero y marzo','Febrero y abril','Marzo y mayo'],t:60},
-{q:'Gráfico de barras — Asistencia: curso A 20 estudiantes, B 25, C 15 y D 25. ¿Qué cursos comparten la mayor asistencia?',o:['B y D','A y C','A y B','C y D'],t:60}
-];
+{q:'Un mapa ubica dos ciudades en A(−4, 2) y B(6, 8). ¿Cuál es el punto medio M para una estación de señal?',o:['M = (1, 5)','M = (2, 10)','M = (5, 3)','M = (10, 6)'],t:60},
+{q:'El punto medio de AB es M(3, 4) y A está en (1, 1). ¿Cuáles son las coordenadas de B?',o:['B = (5, 7)','B = (2, 3)','B = (6, 8)','B = (4, 5)'],t:60},
+
+{q:'Una parábola corta el eje X en x₁ = −2 y x₂ = 8. ¿En qué x está su eje de simetría?',o:['x = 3','x = 6','x = 5','x = −5'],t:60},
+{q:'La recta 2x + 3y − 12 = 0 corta el eje X en A y el eje Y en B. ¿Cuál es el punto medio de AB?',o:['M = (3, 2)','M = (6, 4)','M = (2, 3)','M = (−3, −2)'],t:60},
+{q:'¿Qué representa el tamaño de cada sector en un gráfico circular?',o:['La proporción de cada categoría respecto al total (círculo = 100 % = 360°)','El valor exacto de la categoría, sin importar el total','El cambio de los datos a lo largo del tiempo','El orden alfabético de las categorías'],t:60}];
 function labQ(t,s,c){const x=t.ctx;x.fillStyle=c;x.fillRect(0,0,128,128);x.strokeStyle='#fff';x.lineWidth=8;x.strokeRect(4,4,120,120);x.fillStyle='#25093f';x.font='bold 84px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(s,64,70);t.tex.needsUpdate=true}
 const sc=new THREE.Scene();sc.background=new THREE.Color(0x2d0b4e);
 const cam=new THREE.PerspectiveCamera(45,1,.1,200);
@@ -230,7 +225,7 @@ function say(q){$('rd').textContent='Ronda '+G.round+'/'+MAXR+(q?' · '+q:'')}
 function kill(e){e.alive=false;e.mesh.visible=false;e.sh.visible=false;hud()}
 function startGame(){
  if(roomRef&&!isHost)return;
- G.round=0;G.questions=QS.slice(0,MAXR);
+ G.round=0;G.questions=Array.from({length:10},(_,i)=>QS[i%QS.length]);
  for(let i=G.questions.length-1;i>0;i--){const j=RI(0,i);[G.questions[i],G.questions[j]]=[G.questions[j],G.questions[i]]}
  E.forEach((e,i)=>{e.alive=i===0||playerOrder[i]!==undefined;e.mesh.visible=e.sh.visible=e.alive;e.x=R(-6,6);e.z=R(-6,6);e.y=0;e.vy=0});
  if(roomRef){roomRef.child("players").once("value").then(s=>{const ps=s.val()||{};Object.keys(ps).forEach(id=>roomRef.child("players/"+id).update({alive:true,x:R(-6,6),z:R(-6,6),y:0}));});}
