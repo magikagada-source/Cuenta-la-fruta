@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Cuenta la fruta - salas corregidas</title>
+<link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#2d0b4e;--card:rgba(24,6,44,.72);--gold:#ffd23f;--cyan:#5cf2ff;--pink:#ff2a6d;--ink:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:"Fredoka",system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+h1,h2,button,#fn,#tm{font-family:"Titan One","Fredoka",system-ui,sans-serif;font-weight:400}
+#hud{position:fixed;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px 0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:5}
+#card{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:6px 16px}
+#card{max-width:min(94vw,440px)}#q{font-size:15px;line-height:1.3;text-align:center}#opts{display:grid;grid-template-columns:1fr 1fr;gap:5px;max-width:min(94vw,440px)}#opts div{font-size:13px;line-height:1.2;border-radius:10px;padding:4px 8px;color:#25093f;font-weight:700}
+#bar{display:flex;gap:10px;font-size:15px}
+#bar span{background:var(--card);border-radius:10px;padding:3px 12px}
+#scoreToggle{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 48px);transform:translateX(-50%);width:48px;height:48px;display:flex;align-items:center;justify-content:center;z-index:23;border:2px solid var(--gold);border-radius:50%;background:rgba(24,6,44,.94);color:var(--gold);font:22px "Fredoka",sans-serif;padding:0;pointer-events:auto;box-shadow:0 2px 10px #0008}
+#scoreboard{display:none;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);transform:translateX(-50%);z-index:23;background:rgba(24,6,44,.96);border:1px solid rgba(255,210,63,.75);border-radius:10px;padding:7px 10px;font-size:12px;line-height:1.45;max-width:min(88vw,300px);max-height:38vh;overflow:auto;pointer-events:auto}
+#scoreboard.open{display:block}
+#scoreboard strong{color:var(--gold)}.score-row{display:flex;justify-content:space-between;gap:18px;white-space:nowrap}
+#tm{color:var(--cyan);min-width:2.2em;text-align:center}
+#ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(10,0,24,.78);padding:16px}
+#ov.off{display:none}
+#bx{max-width:360px;text-align:center;background:linear-gradient(#4a1a80,#1d0a3a);border:4px solid var(--gold);border-radius:24px;padding:22px}
+h1{margin:0;font-size:38px;color:var(--gold);text-shadow:0 4px 0 #000}
+h2{margin:4px 0 12px;font-size:21px;color:var(--cyan)}
+#t3{font-size:15px;line-height:1.45;margin:0 0 16px;color:#eadcff}
+#go{width:100%;padding:14px;font-size:22px;border:0;border-bottom:5px solid #1e9e4b;border-radius:16px;background:#3dff88;color:#25093f;cursor:pointer}
+#go:active{transform:translateY(2px)}
+#go:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#joy,#jb{display:none;position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:6}
+#joy{left:22px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.4)}
+#knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.7)}
+#jb{right:22px;width:96px;height:96px;border-radius:50%;border:0;background:var(--pink);color:#fff;font-size:15px}
+@media(pointer:coarse){#joy,#jb{display:block}#scoreToggle{bottom:calc(env(safe-area-inset-bottom,0px) + 58px)}#scoreboard{bottom:calc(env(safe-area-inset-bottom,0px) + 114px)}}
+</style>
+</head>
+<body>
+<div id="hud">
+<div id="card"><div id="q">Prepárate</div></div><div id="opts"></div>
+<div id="bar"><span id="rd">Ronda 0/15</span><span id="tm">0</span><span id="al">1 vivo</span></div><div id="roomHud" style="font-size:12px;background:rgba(24,6,44,.72);padding:3px 10px;border-radius:9px"></div></div>
+<button id="scoreToggle" type="button" aria-label="Mostrar tabla de puntos" title="Tabla de puntos" aria-expanded="false">🏆</button>
+<div id="scoreboard" aria-hidden="true"><strong>Tabla de puntos</strong><div id="scoreRows">Aún no hay puntuaciones</div></div>
+</div>
+<div id="ov"><div id="bx">
+<h1 id="t1">FALL GUYS</h1><h2 id="t2">Preguntas y casillas</h2>
+<p id="t3">Entra a una sala o crea una nueva. El primer jugador será el anfitrión. ¡Juega con personas desde cualquier lugar!<br>WASD o flechas para moverte, espacio para saltar.</p>
+<input id="playerName" maxlength="16" placeholder="Tu nombre" value="Jugador" style="box-sizing:border-box;width:100%;padding:12px;border-radius:12px;border:2px solid #ffd23f;margin:0 0 9px;font:700 16px Fredoka;text-align:center">
+<button id="go">Crear sala online</button>
+<div style="display:flex;gap:7px;margin-top:9px">
+<input id="roomCode" maxlength="6" placeholder="Código" style="min-width:0;width:50%;padding:12px;border-radius:12px;border:2px solid #5cf2ff;font:700 16px Fredoka;text-align:center;text-transform:uppercase">
+<button id="join" style="flex:1;border:0;border-radius:12px;background:#5cf2ff;color:#25093f;font:18px 'Titan One';padding:8px">Unirse</button>
+</div>
+<p id="onlineStatus" style="font-size:13px;color:#eadcff;margin:10px 0 0">Pulsa “Crear sala online”. Si hay un problema, aquí aparecerá el motivo.</p>
+</div></div>
+<div id="joy"><div id="knob"></div></div>
+<button id="jb">Saltar</button>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),R=(a,b)=>a+Math.random()*(b-a),RI=(a,b)=>Math.floor(R(a,b+1));
+// CONFIGURACIÓN: reemplaza estos valores por los de tu proyecto Firebase.
+const firebaseConfig = {
+  apiKey: "AIzaSyADntgqNbUbcvYaAdoeh6M3KATojhcJmxk",
+  authDomain: "cuenta-la-fruta.firebaseapp.com",
+  databaseURL: "https://cuenta-la-fruta-default-rtdb.firebaseio.com",
+  projectId: "cuenta-la-fruta",
+  appId: "1:257009462532:web:da749d2666b5dccdccb451"
+};
+let db=null, roomRef=null, roomId=null, playerId=null, isHost=false, onlineReady=false;
+let playerName="Jugador", playerOrder=[], slotPlayerIds=[], lastStateKey="", lastPublish=0, lastStatePublish=0;
+// Los botones se conectan antes de inicializar Three.js para que un fallo gráfico no los deje inactivos.
+let roomActionBusy=false;
+function showFatalError(message){
+  const el=$("onlineStatus");
+  if(el) el.textContent="Error del juego: "+message;
+}
+window.addEventListener("error",ev=>{
+  if(ev && ev.message) showFatalError(ev.message);
+});
+window.addEventListener("unhandledrejection",ev=>{
+  const reason=ev && ev.reason;
+  if(reason) showFatalError(reason.message||String(reason));
+});
+$("go").addEventListener("click",()=>{
+  if(roomActionBusy) return;
+  if(roomRef && isHost){ startGame(); return; }
+  createOnlineRoom();
+});
+$("join").addEventListener("click",()=>{ if(!roomActionBusy) joinOnlineRoom(); });
+$("scoreToggle").addEventListener("click",()=>{const panel=$("scoreboard"),open=!panel.classList.contains("open");panel.classList.toggle("open",open);$("scoreToggle").setAttribute("aria-expanded",String(open));panel.setAttribute("aria-hidden",String(!open));});
+const setStatus=t=>{const el=$("onlineStatus");if(el)el.textContent=t};
+function firebaseConfigured(){
+  return firebaseConfig.apiKey!=="PEGA_AQUI_TU_API_KEY" &&
+         firebaseConfig.projectId!=="TU_PROYECTO" &&
+         firebaseConfig.databaseURL.includes("firebaseio.com");
+}
+async function connectFirebase(){
+  if(typeof firebase==="undefined") throw new Error("No se pudo cargar Firebase. Revisa tu conexión a internet y abre el juego desde Chrome.");
+  if(!firebaseConfigured()) throw new Error("La configuración de Firebase está incompleta.");
+  if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth=firebase.auth();
+  if(!auth.currentUser){
+    await Promise.race([
+      auth.signInAnonymously(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("La conexión con Firebase tardó demasiado. Comprueba internet y vuelve a intentarlo.")),15000))
+    ]);
+  }
+  db=firebase.database(); onlineReady=true;
+  playerId=auth.currentUser.uid;
+}
+function makeRoomCode(){
+  // 32 caracteres sin I/O/0/1: seis caracteres dan más de mil millones de códigos.
+  const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes=new Uint8Array(6);
+  if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(bytes);
+  else for(let i=0;i<6;i++) bytes[i]=Math.floor(Math.random()*256);
+  return Array.from(bytes,b=>alphabet[b%alphabet.length]).join("");
+}
+async function createOnlineRoom(){
+  if(roomActionBusy) return;
+  roomActionBusy=true;
+  const btn=$("go");
+  btn.disabled=true; btn.textContent="Conectando...";
+  setStatus("Conectando con Firebase y reservando una sala...");
+  try{
+    await connectFirebase();
+    playerName=($("playerName").value.trim()||"Jugador").slice(0,16);
+    let created=false;
+    let lastCandidate="";
+    for(let attempt=0;attempt<12 && !created;attempt++){
+      const candidate=makeRoomCode();
+      lastCandidate=candidate;
+      const candidateRef=db.ref("rooms/"+candidate);
+      const now=Date.now();
+      // La transacción comprueba y crea en una sola operación atómica:
+      // dos jugadores nunca pueden reservar simultáneamente el mismo código.
+      const result=await candidateRef.transaction(current=>{
+        if(current!==null) return;
+        return {
+          host:playerId,
+          createdAt:now,
+          game:{status:"waiting",round:0,phase:"idle",updatedAt:now},
+          players:{[playerId]:{name:playerName,x:0,z:0,y:0,alive:true,score:0,joinedAt:now}}
+        };
+      }, undefined, false);
+      if(result.committed){
+        roomId=candidate;
+        roomRef=candidateRef;
+        isHost=true;
+        created=true;
+      }
+    }
+    if(!created) throw new Error("No se pudo reservar una sala después de 12 intentos. Comprueba los permisos de lectura y escritura de /rooms en Realtime Database.");
+    enterOnlineRoom();
+  }catch(e){
+    console.error("Error creando sala:",e);
+    roomRef=null; roomId=null; isHost=false;
+    const detail=e&&e.message?e.message:String(e);
+    setStatus("No se pudo crear la sala: "+detail);
+    btn.textContent="Reintentar crear sala";
+  }finally{
+    roomActionBusy=false;
+    if(!roomRef || !isHost) btn.disabled=false;
+  }
+}
+async function joinOnlineRoom(){
+  if(roomActionBusy) return;
+  roomActionBusy=true; $("join").disabled=true;
+  setStatus("Conectando con Firebase...");
+  try{
+    await connectFirebase();
+    playerName=($("playerName").value.trim()||"Jugador").slice(0,16);
+    const code=$("roomCode").value.trim().toUpperCase();
+    if(!/^[A-Z0-9]{6}$/.test(code)) throw new Error("Escribe un código de sala de 6 caracteres.");
+    roomId=code; roomRef=db.ref("rooms/"+roomId);
+    const snap=await roomRef.once("value");
+    if(!snap.exists()) throw new Error("No existe esa sala. Comprueba el código.");
+    const data=snap.val();
+    if(Object.keys(data.players||{}).length>=8) throw new Error("La sala está completa (máximo 8 jugadores).");
+    isHost=data.host===playerId;
+    await roomRef.child("players/"+playerId).set({name:playerName,x:0,z:0,y:0,alive:true,score:0,joinedAt:Date.now()});
+    enterOnlineRoom();
+  }catch(e){
+    console.error("Error entrando a sala:",e);
+    roomRef=null; roomId=null; isHost=false;
+    setStatus("No se pudo entrar: "+(e.message||String(e)));
+  }finally{
+    roomActionBusy=false;
+    if(!roomRef) $("join").disabled=false;
+  }
+}
+function enterOnlineRoom(){
+  $("roomHud").textContent="Sala "+roomId+" · "+(isHost?"HOST":"JUGADOR");
+  $("t1").textContent="SALA "+roomId;
+  $("t2").textContent=isHost?"Eres el anfitrión":"Esperando al anfitrión";
+  $("t3").textContent=isHost?"Comparte el código "+roomId+". Pulsa Jugar para iniciar la partida.":"Código "+roomId+". Espera a que el anfitrión inicie.";
+  $("go").textContent=isHost?"Iniciar partida":"Esperando al host…";
+  $("go").disabled=!isHost;
+  $("join").disabled=true;
+  $("roomCode").disabled=true;
+  $("onlineStatus").textContent="Conectado · "+playerName+" · "+roomId;
+  $("ov").classList.remove("off");
+  roomRef.child("players").on("value",snap=>{
+    const players=snap.val()||{};
+    syncPlayers(players);
+    if(!players[""+playerId]) return;
+    const hostIdNow=window.__roomHostId;
+    if(hostIdNow && !players[hostIdNow]) electReplacementHost(players);
+  });
+  roomRef.child("host").on("value",snap=>{
+    const newHost=snap.val();window.__roomHostId=newHost||null;
+    isHost=!!newHost&&newHost===playerId;
+    if(!newHost){roomRef.child("players").once("value").then(s=>electReplacementHost(s.val()||{})).catch(err=>console.warn(err));}
+    if(isHost){$("roomHud").textContent="Sala "+roomId+" · HOST";$("t2").textContent="Eres el anfitrión";$("go").textContent="Iniciar / continuar";$("go").disabled=false;}
+    else if(newHost){$("roomHud").textContent="Sala "+roomId+" · JUGADOR";$("go").textContent="Esperando al host…";$("go").disabled=true;}
+  });
+  roomRef.child("game").on("value",snap=>{const st=snap.val();if(st)applyRemoteGameState(st)});
+  roomRef.onDisconnect().cancel();
+  roomRef.child("players/"+playerId).onDisconnect().remove();
+}
+async function electReplacementHost(players){
+  if(!roomRef||!playerId)return;
+  const candidates=Object.entries(players||{}).filter(([id])=>!!id).sort((a,b)=>(a[1].joinedAt||0)-(b[1].joinedAt||0));
+  if(!candidates.length)return;
+  const candidateId=candidates[0][0];
+  try{
+    const hostRef=roomRef.child("host");
+    const result=await hostRef.transaction(current=>{
+      if(current && players[current]) return;
+      return candidateId;
+    },undefined,false);
+    if(result.committed && result.snapshot.val()===playerId){
+      isHost=true;
+      const gs=await roomRef.child("game").once("value"),st=gs.val()||{};
+      if(st.status==="playing"){
+        G.round=Number(st.round)||0;G.ph=st.phase||"pick";G.t=Number(st.time)||1;
+        G.questions=Array.isArray(st.questions)&&st.questions.length?st.questions:QS.slice();
+        if(Array.isArray(st.tileOk))st.tileOk.slice(0,T.length).forEach((v,i)=>{
+          const tile=T[i];if(tile){tile.ok=!!v;const q=Math.floor(i/8)*2+(i%4>>1);labQ(tile,"ABCD"[q],QC[q]);}
+        });
+        if(Array.isArray(st.tileSolid))st.tileSolid.slice(0,T.length).forEach((v,i)=>{if(T[i])T[i].solid=!!v;});
+        lastStateKey=String(G.round)+G.ph;
+        $("ov").classList.add("off");
+        setStatus("El anfitrión anterior se desconectó. Continúas como anfitrión.");
+      }else if(st.status==="finished"){
+        $("go").textContent="Jugar otra vez";$("go").disabled=false;
+      }
+      publishGameState();
+    }
+  }catch(err){console.warn("No se pudo elegir un nuevo anfitrión:",err);setStatus("El anfitrión se desconectó, pero no se pudo transferir el control. Revisa las reglas de Firebase.");}
+}
+function syncPlayers(players){
+  const ids=Object.keys(players).sort((a,b)=>(players[a].joinedAt||0)-(players[b].joinedAt||0));
+  playerOrder=ids;
+  E.forEach((e,i)=>{e.alive=false;e.mesh.visible=false;e.sh.visible=false});
+  const ordered=[playerId,...ids.filter(id=>id!==playerId)];
+  slotPlayerIds=ordered;
+  ordered.forEach((id,slot)=>{
+    const p=players[id];if(!p||slot>=E.length)return;
+    const e=E[slot];
+    applyPlayerSkin(e,id);
+    e.name=p.name||"Jugador";e.score=Number(p.score)||0;e.alive=p.alive!==false;
+    if(id!==playerId || Number(p.respawnAt||0)>Number(e.respawnAt||0)){
+      e.x=Number(p.x)||0;e.z=Number(p.z)||0;e.y=Number(p.y)||0;
+      e.respawnAt=Number(p.respawnAt)||0;
+    }
+    e.mesh.visible=e.sh.visible=e.alive;
+    e.mesh.position.set(e.x,e.y+.3,e.z);
+    e.sh.position.set(e.x,.32,e.z);
+  });
+  renderScoreboard(players);
+  hud();
+}
+function renderScoreboard(players){
+  const entries=Object.entries(players||{}).map(([id,p])=>({id,name:p.name||"Jugador",score:Number(p.score)||0,joinedAt:p.joinedAt||0}));
+  entries.sort((a,b)=>b.score-a.score||a.joinedAt-b.joinedAt);
+  $("scoreRows").innerHTML=entries.length?entries.map((p,i)=>'<div class="score-row"><span>'+(i+1)+'. '+escapeHTML(p.name)+'</span><strong>'+p.score+' pt'+(p.score===1?'':'s')+'</strong></div>').join(""):"Aún no hay puntuaciones";
+}
+function escapeHTML(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]});}
+function publishPlayer(){
+  if(!roomRef||!playerId||!E[0])return Promise.resolve();
+  const e=E[0];
+  // Publica también el estado de supervivencia inmediatamente cuando cambia.
+  return roomRef.child("players/"+playerId).update({
+    x:e.x,z:e.z,y:e.y,alive:e.alive,score:Number(e.score)||0,
+    lastUpdate:Date.now()
+  }).catch(err=>{console.warn("No se pudo sincronizar el jugador:",err);});
+}
+function publishGameState(){
+  if(!roomRef||!isHost)return;
+  const Q=G.questions&&G.questions[G.round-1];
+  roomRef.child("game").update({status:"playing",round:G.round,phase:G.ph,time:G.t,
+    question:Q?Q.q:"",options:G.displayOptions|| (Q?Q.o:[]),questions:G.questions||QS,
+    tileOk:T.map(t=>!!t.ok),tileSolid:T.map(t=>!!t.solid),updatedAt:Date.now()});
+}
+function applyRemoteGameState(st){
+  if(isHost||!st)return;
+  try{
+    if(st.questions&&Array.isArray(st.questions)&&st.questions.length)G.questions=st.questions;
+    if(st.status==="playing"){
+      const nextKey=String(st.round)+String(st.phase);
+      if(G.round!==st.round || lastStateKey!==nextKey){
+        G.round=Number(st.round)||G.round;G.ph=st.phase||"idle";G.t=Number(st.time)||0;
+        if(st.question!==undefined)$("q").textContent=String(st.question);
+        if(Array.isArray(st.options)){
+          $("opts").innerHTML=st.options.slice(0,4).map((v,i)=>'<div style="background:'+QC[i]+'">'+"ABCD"[i]+') '+escapeHTML(v)+'</div>').join("");
+          G.displayOptions=st.options.slice(0,4);
+        }
+        if(st.phase==="pick")T.forEach((tile,i)=>{
+          tile.m.position.y=0;tile.m.rotation.set(0,0,0);
+          tile.v=0;tile.solid=true;
+          tile.top.color.setHex(0xffffff);
+          const q=Math.floor(i/8)*2+(i%4>>1);
+          labQ(tile,"ABCD"[q],QC[q]);
+        });
+        lastStateKey=nextKey;
+        $("ov").classList.add("off");hud();
+      }else{
+        G.t=Number(st.time)||G.t;
+      }
+      // Reaplica el estado completo de las plataformas en CADA actualización.
+      // Si el navegador invitado pierde una transición de fase, el siguiente
+      // heartbeat igualmente le comunica qué casillas deben seguir sólidas.
+      if(Array.isArray(st.tileOk))st.tileOk.slice(0,T.length).forEach((v,i)=>{
+        const tile=T[i],ok=!!v;
+        if(tile&&tile.ok!==ok){
+          tile.ok=ok;
+          const q=Math.floor(i/8)*2+(i%4>>1);
+          labQ(tile,"ABCD"[q],QC[q]);
+        }
+      });
+      if(Array.isArray(st.tileSolid))st.tileSolid.slice(0,T.length).forEach((v,i)=>{
+        if(T[i])T[i].solid=!!v;
+      });
+      if(st.phase==="pick"){
+        T.forEach((tile,i)=>{
+          tile.top.color.setHex(0xffffff);
+          tile.m.position.y=0;tile.m.rotation.set(0,0,0);tile.v=0;
+          const q=Math.floor(i/8)*2+(i%4>>1);
+          labQ(tile,"ABCD"[q],QC[q]);
+        });
+      }
+    }else if(st.status==="waiting"){
+      $("t2").textContent="Esperando al anfitrión";$("ov").classList.remove("off");
+    }else if(st.status==="finished"){
+      G.ph="idle";$("t1").textContent="PARTIDA TERMINADA";$("t2").textContent="¡Gracias por jugar!";
+      $("t3").textContent="La tabla muestra los puntos acumulados.";$("go").textContent="Esperando al anfitrión…";$("go").disabled=true;$("ov").classList.remove("off");
+      const panel=$("scoreboard");panel.classList.add("open");panel.setAttribute("aria-hidden","false");
+      $("scoreToggle").setAttribute("aria-expanded","true");
+    }
+  }catch(err){
+    console.error("Error al sincronizar la ronda remota:",err);
+    setStatus("Error al mostrar la ronda en este dispositivo. Se intentará sincronizar de nuevo: "+(err.message||String(err)));
+  }
+}
+
+const QC=['#ff7a8a','#6bb6ff','#5fe39a','#ffd23f'];
+const QS=[
+{q:'Un gráfico de barras muestra las ventas: lunes 25, martes 40, miércoles 35 y jueves 50. ¿Cuántas unidades más se vendieron el jueves que el lunes?',o:['25 unidades','15 unidades','20 unidades','30 unidades'],t:30},
+{q:'Un gráfico circular muestra que el 25% de 100 estudiantes prefiere música. ¿Cuántos estudiantes eligieron esa categoría?',o:['25 estudiantes','20 estudiantes','30 estudiantes','40 estudiantes'],t:30},
+{q:'Un gráfico de líneas muestra temperaturas: lunes 18°, martes 22°, miércoles 20° y jueves 26°. ¿Entre qué días ocurrió el mayor aumento?',o:['Miércoles y jueves','Lunes y martes','Martes y miércoles','El aumento fue igual'],t:30},
+{q:'En un gráfico de barras, cuatro equipos obtuvieron 35, 50, 45 y 30 puntos. ¿Cuál es la diferencia entre el mayor y el menor puntaje?',o:['20 puntos','15 puntos','25 puntos','30 puntos'],t:30},
+{q:'Un gráfico circular indica: alimentación 40%, transporte 25%, ocio 20% y ahorro 15%. ¿Qué porcentaje representan juntos alimentación y transporte?',o:['65%','60%','55%','70%'],t:30},
+{q:'Un gráfico de líneas muestra el agua de un depósito: día 1: 100 L, día 2: 150 L, día 3: 120 L, día 4: 180 L y día 5: 160 L. ¿En qué día hubo más agua?',o:['Día 4','Día 2','Día 5','Día 3'],t:30},
+{q:'En un pictograma, cada símbolo representa 5 libros. Ana tiene 4 símbolos y Pedro 3. ¿Cuántos libros tienen entre los dos?',o:['35 libros','25 libros','30 libros','40 libros'],t:30},
+{q:'Un gráfico de barras muestra las notas: prueba 1: 5; prueba 2: 6; prueba 3: 5,5; prueba 4: 7; prueba 5: 6,5. ¿En cuál se obtuvo exactamente un punto más que en la prueba 1?',o:['Prueba 2','Prueba 3','Prueba 4','Prueba 5'],t:30},
+{q:'Un gráfico circular representa 200 personas: pop 35%, rock 30%, reguetón 20% y otros 15%. ¿Cuántas personas prefieren rock o reguetón?',o:['100 personas','90 personas','110 personas','120 personas'],t:30},
+{q:'Un gráfico de líneas muestra la distancia de un ciclista: hora 1: 10 km, hora 2: 25 km, hora 3: 40 km y hora 4: 55 km. Si mantiene la tendencia, ¿qué distancia llevará en la hora 5?',o:['70 km','60 km','65 km','75 km'],t:30},
+{q:'Un histograma muestra 8 personas de 10-12 años, 15 de 13-15, 12 de 16-18 y 5 de 19-21. ¿Qué porcentaje tiene entre 13 y 15 años?',o:['37,5%','30%','35%','40%'],t:30},
+{q:'Un gráfico de barras muestra la producción: enero 120, febrero 150, marzo 135 y abril 180 unidades. ¿Entre qué meses disminuyó la producción?',o:['Febrero y marzo','Enero y febrero','Marzo y abril','No disminuyó'],t:30},
+{q:'Un gráfico circular muestra cómo llegan 400 estudiantes: bus 45%, auto 25%, bicicleta 20% y caminando 10%. ¿Cuántos llegan en bicicleta o caminando?',o:['120 estudiantes','100 estudiantes','140 estudiantes','160 estudiantes'],t:30},
+{q:'Un gráfico de líneas muestra el crecimiento semanal: semana 1: 4 cm, semana 2: 7 cm, semana 3: 11 cm y semana 4: 16 cm. ¿En qué intervalo aumentó más?',o:['De la semana 3 a la 4','De la semana 1 a la 2','De la semana 2 a la 3','En todos por igual'],t:30},
+{q:'Un gráfico de dispersión muestra una tendencia ascendente entre horas de estudio y calificaciones. ¿Qué interpretación es la más adecuada?',o:['En general, a más horas de estudio se observan calificaciones más altas','Estudiar más siempre garantiza la nota máxima','No existe ninguna relación entre las variables','A más horas de estudio, menores calificaciones'],t:30}
+];
+function labQ(t,s,c){const x=t.ctx;x.fillStyle=c;x.fillRect(0,0,128,128);x.strokeStyle='#fff';x.lineWidth=8;x.strokeRect(4,4,120,120);x.fillStyle='#25093f';x.font='bold 84px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(s,64,70);t.tex.needsUpdate=true}
+if(typeof THREE==="undefined"){showFatalError("No se pudo cargar el motor gráfico Three.js. Comprueba tu conexión a internet y recarga la página.");throw new Error("Three.js no está disponible");}
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x2d0b4e);
+const cam=new THREE.PerspectiveCamera(45,1,.1,200);
+const rn=new THREE.WebGLRenderer({antialias:true});rn.setPixelRatio(Math.min(devicePixelRatio,2));
+rn.domElement.style.cssText='position:fixed;inset:0;width:100%;height:100%';document.body.prepend(rn.domElement);
+function rs(){const a=innerWidth/innerHeight,k=Math.max(1,.85/a);rn.setSize(innerWidth,innerHeight,false);cam.aspect=a;cam.position.set(0,26*k,20*k);cam.lookAt(0,0,0);cam.updateProjectionMatrix()}
+addEventListener('resize',rs);rs();
+sc.add(new THREE.AmbientLight(0xffffff,.75));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(15,40,20);sc.add(dl);
+const slime=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x00ff66,roughness:.1,transparent:true,opacity:.85}));
+slime.rotation.x=-Math.PI/2;slime.position.y=-12;sc.add(slime);
+// Casillas
+const T=[],tg=new THREE.BoxGeometry(3.8,.6,3.8),sm=new THREE.MeshStandardMaterial({color:0xb8a9ff,roughness:.4});
+for(let i=0;i<16;i++){const cv=document.createElement('canvas');cv.width=cv.height=128;const tex=new THREE.CanvasTexture(cv);
+const top=new THREE.MeshStandardMaterial({map:tex,roughness:.4});const m=new THREE.Mesh(tg,[sm,sm,top,sm,sm,sm]);
+const cx=(i%4-1.5)*4,cz=(Math.floor(i/4)-1.5)*4;m.position.set(cx,0,cz);sc.add(m);
+T.push({m,top,ctx:cv.getContext('2d'),tex,cx,cz,solid:true,v:0,ok:true})}
+function lab(t,s){const x=t.ctx;x.fillStyle='#fff';x.fillRect(0,0,128,128);x.strokeStyle='#8a5cff';x.lineWidth=8;x.strokeRect(4,4,120,120);
+x.fillStyle='#3b1368';x.font='bold 84px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(s,64,70);t.tex.needsUpdate=true}
+function labQ(t,s,c){
+  const x=t.ctx;x.clearRect(0,0,128,128);x.fillStyle=c||'#ffffff';x.fillRect(0,0,128,128);
+  x.strokeStyle='#ffffff';x.lineWidth=8;x.strokeRect(4,4,120,120);x.fillStyle='#25093f';
+  x.font='bold 84px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(String(s||''),64,70);
+  t.tex.needsUpdate=true;
+}
+function tileAt(x,z){const c=Math.floor(x/4+2),r=Math.floor(z/4+2);return c>=0&&c<4&&r>=0&&r<4?T[r*4+c]:null}
+// Jugadores
+const COL=[0xffd23f,0xff2a6d,0x05d9e8,0x00ff66,0x9d00ff,0xff6600,0x4d7cff,0xff9ecb];
+function bean(c){const g=new THREE.Group(),M=new THREE.MeshStandardMaterial({color:c,roughness:.35}),W=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.2}),B=new THREE.MeshBasicMaterial({color:0x111111}),S=new THREE.SphereGeometry(1,16,12);
+const add=(geo,mat,x,y,z,s)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(s)m.scale.set(s[0],s[1],s[2]);g.add(m)};
+add(new THREE.CylinderGeometry(.6,.6,.8,16),M,0,1.15,0);add(S,M,0,1.55,0,[.6,.6,.6]);add(S,M,0,.75,0,[.6,.6,.6]);
+[-1,1].forEach(s=>{add(S,W,s*.22,1.7,.46,[.2,.27,.14]);add(S,B,s*.22,1.68,.56,[.08,.1,.05]);add(S,M,s*.68,1.05,.05,[.16,.28,.16]);add(S,M,s*.25,.2,.05,[.22,.2,.28])});return g}
+function applyPlayerSkin(e,id){
+  if(!e||!e.mesh||!id)return;
+  let hash=0;for(let i=0;i<String(id).length;i++)hash=((hash<<5)-hash+String(id).charCodeAt(i))|0;
+  const color=COL[(hash>>>0)%COL.length];
+  e.mesh.children.forEach((part,index)=>{
+    if([0,1,2,5,6,7,8,9,10].includes(index)&&part.material&&part.material.color)part.material.color.setHex(color);
+  });
+}
+const sg=new THREE.CircleGeometry(.7,16),smat=new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.3});
+const E=COL.map((c,i)=>{const mesh=bean(c),sh=new THREE.Mesh(sg,smat);sh.rotation.x=-Math.PI/2;sc.add(mesh,sh);return{mesh,sh,x:0,y:0,z:0,vy:0,on:true,alive:true,bot:false,tx:0,tz:0,wait:0}});
+const pm=new THREE.Mesh(new THREE.ConeGeometry(.35,.6,8),new THREE.MeshBasicMaterial({color:0x5cf2ff}));pm.rotation.x=Math.PI;pm.position.y=2.9;E[0].mesh.add(pm);
+// Frutas
+let F=[];
+// Estado
+const G={ph:'idle',t:0,round:0,tg:0,ans:0},MAXR=15;
+// Evita que el bucle de animación procese varias veces el final de una misma ronda.
+let roundCompleting=false;
+function alive(){return E.filter(e=>e.alive).length}
+function hud(){$('al').textContent=alive()+' vivos';$('rd').textContent='Ronda '+G.round+'/'+MAXR}
+function say(q){$('rd').textContent='Ronda '+G.round+'/'+MAXR+(q?' · '+q:'')}
+function kill(e){
+  if(!e.alive)return;
+  e.alive=false;e.mesh.visible=false;e.sh.visible=false;hud();
+  // No esperar al siguiente ciclo de sincronización para informar la derrota.
+  if(roomRef&&e===E[0])publishPlayer();
+}
+function startGame(){
+ if(roomRef&&!isHost)return;
+ G.round=0;G.questions=QS.slice();
+ for(let i=G.questions.length-1;i>0;i--){const j=RI(0,i);[G.questions[i],G.questions[j]]=[G.questions[j],G.questions[i]]}
+ E.forEach((e,i)=>{e.score=0;e.alive=i===0||playerOrder[i]!==undefined;e.mesh.visible=e.sh.visible=e.alive;e.x=R(-6,6);e.z=R(-6,6);e.y=0;e.vy=0;e.lockTileIndex=null});
+ if(roomRef){roomRef.child("players").once("value").then(s=>{const ps=s.val()||{},stamp=Date.now(),updates={};Object.keys(ps).forEach(id=>{const slot=slotPlayerIds.indexOf(id),e=slot>=0?E[slot]:null;updates[id]={alive:true,score:0,x:e?e.x:R(-6,6),z:e?e.z:R(-6,6),y:0,respawnAt:stamp};});return roomRef.child("players").update(Object.fromEntries(Object.entries(updates).flatMap(([id,p])=>Object.entries(p).map(([k,v])=>[""+id+"/"+k,v]))));}).catch(err=>{console.error("No se pudo reiniciar la sala:",err);setStatus("No se pudieron reiniciar los jugadores: "+(err.message||err));});}
+ $('ov').classList.add('off');startRound()
+}
+function startRound(){
+ if(G.round>=MAXR){end(true);return;}
+ G.round++;hud();E.forEach(e=>{e.lockTileIndex=null;e.vy=0;e.on=true;e.y=0;e.mesh.visible=e.sh.visible=e.alive;});
+T.forEach((t,i)=>{
+  t.solid=true;t.v=0;t.m.position.y=0;t.m.rotation.set(0,0,0);
+  t.top.color.setHex(0xffffff);
+  const q=Math.floor(i/8)*2+(i%4>>1);
+  labQ(t,'ABCD'[q],QC[q]);
+});
+const questions=Array.isArray(G.questions)&&G.questions.length?G.questions:QS;
+const Q=questions[(G.round-1)%questions.length];
+if(!Q||!Array.isArray(Q.o)||Q.o.length<4){console.error('Pregunta inválida en ronda',G.round,Q);G.ph='idle';setStatus('No se pudo cargar la pregunta de esta ronda. Pulsa Jugar otra vez.');return;}
+const o=Q.o.slice(0,4).map((t,i)=>({t,ok:i===0}));for(let i=o.length-1;i>0;i--){const j=RI(0,i);[o[i],o[j]]=[o[j],o[i]]}
+G.displayOptions=o.map(x=>x.t);G.pt=Q.t;$('q').textContent=Q.q;
+$('opts').innerHTML=o.map((x,i)=>'<div style="background:'+QC[i]+'">'+'ABCD'[i]+') '+x.t+'</div>').join('');
+T.forEach((t,i)=>{const q=Math.floor(i/8)*2+(i%4>>1);t.ok=o[q].ok;labQ(t,'ABCD'[q],QC[q])});
+setPhase('pick',Q.t,'Corre a tu respuesta');publishGameState()}
+function setPhase(p,t,q){G.ph=p;G.t=t;say(q);publishGameState()}
+function decide(b){const right=Math.random()<Math.max(.45,.88-G.round*.07),pool=T.filter(t=>t.ok===right);
+pool.sort((a,c)=>Math.hypot(a.cx-b.x,a.cz-b.z)-Math.hypot(c.cx-b.x,c.cz-b.z));
+const t=right?pool[0]:pool[RI(0,pool.length-1)];b.tx=t.cx+R(-1,1);b.tz=t.cz+R(-1,1);b.wait=R(1.5,Math.max(3,G.pt-7))}
+function nextPhase(){
+if(G.ph==='pick')setPhase('warn',1.3,'¡Cuidado!');
+else if(G.ph==='warn'){T.forEach(t=>{if(!t.ok)t.solid=false});setPhase('drop',2.6,'¡Se caen!');publishGameState()}
+else if(G.ph==='drop'){if(!roundCompleting)completeRound();}
+}
+async function completeRound(){
+  // El temporizador se evalúa en cada fotograma: bloquear antes del primer await evita
+  // que se sumen puntos o se inicien varias rondas por una misma caída.
+  if(roundCompleting)return;
+  roundCompleting=true;
+  try{
+  // Los jugadores que siguen en pie ganan un punto. Todos reaparecen al acabar la ronda.
+  if(roomRef&&isHost){
+    try{
+      // Asegura que el estado del anfitrión esté escrito antes de resolver la ronda.
+      await publishPlayer();
+      // Da un margen breve para que lleguen los últimos estados de los invitados.
+      await new Promise(resolve=>setTimeout(resolve,180));
+      const snap=await roomRef.child('players').once('value');
+      const players=snap.val()||{};
+      const updates={};
+      Object.keys(players).forEach(id=>{
+        const p=players[id]||{};
+        const x=Number(p.x),z=Number(p.z),y=Number(p.y);
+        const tile=Number.isFinite(x)&&Number.isFinite(z)?tileAt(x,z):null;
+        // La decisión la toma el anfitrión usando la respuesta correcta y la
+        // posición publicada. Un alive=true atrasado ya no concede puntos.
+        const survived=p.alive!==false && !!tile && tile.ok===true &&
+          tile.solid===true && Number.isFinite(y) && y>-1.0;
+        const score=(Number(p.score)||0)+(survived?1:0);
+        updates[id]={...p,score,alive:true,x:R(-6,6),z:R(-6,6),y:0,respawnAt:Date.now()};
+      });
+      await roomRef.child('players').set(updates);
+      Object.entries(updates).forEach(([id,p])=>{
+        const slot=slotPlayerIds.indexOf(id);
+        if(slot>=0){
+          const e=E[slot];e.score=p.score;e.alive=true;e.x=p.x;e.z=p.z;e.y=0;
+          e.vy=0;e.on=true;e.respawnAt=p.respawnAt||Date.now();
+          e.mesh.visible=e.sh.visible=true;
+        }
+      });
+    }catch(err){console.error('No se pudo actualizar la tabla de puntos:',err);setStatus('Aviso: no se pudieron guardar los puntos de esta ronda. '+(err.message||err));}
+  }else if(!roomRef){
+    E.forEach(e=>{if(e.alive)e.score=(Number(e.score)||0)+1;e.alive=true;e.x=R(-6,6);e.z=R(-6,6);e.y=0;e.vy=0;e.on=true;e.mesh.visible=e.sh.visible=true;});
+    renderScoreboard({'local':{name:playerName,score:E[0].score||0}});
+  }
+  if(G.round>=MAXR){end(true);return;}
+  if(roomRef&&isHost)await new Promise(resolve=>setTimeout(resolve,350));
+  startRound();
+  }finally{roundCompleting=false;}
+}
+function end(win){
+  G.ph='idle';
+  if(roomRef&&isHost)roomRef.child('game').update({status:'finished',phase:'idle',round:G.round,updatedAt:Date.now()});
+  $('t1').textContent='¡PARTIDA TERMINADA!';
+  $('t2').textContent='¡Has completado las '+G.round+' rondas!';
+  $('t3').textContent='La tabla muestra los puntos acumulados por las rondas ganadas.';
+  $('go').textContent='Jugar otra vez';$('go').disabled=!!roomRef&&!isHost;$('ov').classList.remove('off');
+  const panel=$('scoreboard');panel.classList.add('open');panel.setAttribute('aria-hidden','false');
+  $('scoreToggle').setAttribute('aria-expanded','true');
+}
+// Controles
+const K={};let jx=0,jz=0,jump=false;
+addEventListener('keydown',e=>{K[e.code]=true;if(e.code==='Space')jump=true;if(/Arrow|Space/.test(e.code))e.preventDefault()});
+addEventListener('keyup',e=>K[e.code]=false);
+const joy=$('joy'),kn=$('knob');
+function mv(e){const r=joy.getBoundingClientRect();let x=(e.clientX-r.left-r.width/2)/(r.width/2),y=(e.clientY-r.top-r.height/2)/(r.height/2);const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}jx=x;jz=y;kn.style.transform='translate('+x*35+'px,'+y*35+'px)'}
+joy.onpointerdown=e=>{joy.setPointerCapture(e.pointerId);mv(e)};joy.onpointermove=e=>{if(e.buttons||e.pressure)mv(e)};
+joy.onpointerup=joy.onpointercancel=()=>{jx=jz=0;kn.style.transform=''};
+$('jb').onpointerdown=()=>{jump=true};
+// Bucle
+const clk=new THREE.Clock();
+function loop(){requestAnimationFrame(loop);const dt=Math.min(clk.getDelta(),.05);
+if(G.ph!=='idle'){if(!roomRef||isHost)G.t-=dt;$('tm').textContent=Math.max(0,Math.ceil(G.t));if((!roomRef||isHost)&&G.t<=0)nextPhase()}
+if(G.ph==='warn')T.forEach(t=>{if(!t.ok)t.top.color.setHex(Math.floor(clk.elapsedTime*8)%2?0x555555:0xffffff)});
+F.forEach(f=>{f.d-=dt;if(f.d<=0&&f.m.position.y>f.ty)f.m.position.y=Math.max(f.ty,f.m.position.y-16*dt)});
+T.forEach(t=>{if(!t.solid){t.v+=30*dt;t.m.position.y-=t.v*dt;t.m.rotation.x+=dt*.6}});
+E.forEach((e,idx)=>{if(!e.alive)return;if(roomRef&&idx>0){e.mesh.position.set(e.x,e.y+.3,e.z);e.sh.position.set(e.x,.32,e.z);return}let dx=0,dz=0,sp=7;
+if(!e.bot){if(G.ph!=='idle'){dx=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+jx;dz=(K.KeyS||K.ArrowDown?1:0)-(K.KeyW||K.ArrowUp?1:0)+jz;
+const l=Math.hypot(dx,dz);if(l>1){dx/=l;dz/=l}if(jump&&e.on){e.vy=9.5;e.on=false}}jump=false}
+
+// En los últimos 3 segundos de respuesta, la casilla que pisa queda bloqueada:
+// límites invisibles impiden pasar a otra opción, pero permiten moverse dentro de ella.
+if(G.ph==='pick'&&G.t<=3&&e.lockTileIndex===null){
+  const current=tileAt(e.x,e.z);
+  if(current)e.lockTileIndex=T.indexOf(current);
+}
+let nx=e.x+dx*sp*dt,nz=e.z+dz*sp*dt;
+// Muro perimetral invisible: evita salir de las 4x4 plataformas incluso antes de iniciar.
+const EDGE=7.72;
+nx=Math.max(-EDGE,Math.min(EDGE,nx));nz=Math.max(-EDGE,Math.min(EDGE,nz));
+// Las barreras invisibles se mantienen durante la advertencia y toda la caída.
+// Solo se liberan cuando termina la fase drop y comienza la siguiente ronda.
+const barriersActive=(G.ph==='pick'&&G.t<=3)||G.ph==='warn'||G.ph==='drop';
+if(barriersActive&&e.lockTileIndex!==null){
+  const locked=T[e.lockTileIndex],half=1.8;
+  nx=Math.max(locked.cx-half,Math.min(locked.cx+half,nx));
+  nz=Math.max(locked.cz-half,Math.min(locked.cz+half,nz));
+}
+e.x=nx;e.z=nz;if(dx||dz)e.mesh.rotation.y=Math.atan2(dx,dz);
+const t=tileAt(e.x,e.z),gr=t&&t.solid;
+if(G.ph==='idle'){e.y=0;e.vy=0;e.on=true;e.mesh.position.set(e.x,.3,e.z);e.sh.position.set(e.x,.32,e.z);e.sh.visible=true;return;}
+e.vy-=24*dt;e.y+=e.vy*dt;
+if(gr&&e.y<=0&&e.vy<=0&&e.y>-.6){e.y=0;e.vy=0;e.on=true}else e.on=false;
+if(e.y<-15)kill(e);
+e.mesh.position.set(e.x,e.y+.3,e.z);e.sh.position.set(e.x,.32,e.z);e.sh.visible=!!gr&&e.y>-.2});
+if(roomRef&&performance.now()-lastPublish>100){lastPublish=performance.now();publishPlayer()}
+ if(roomRef&&isHost&&G.ph!=="idle"&&performance.now()-lastStatePublish>500){
+   lastStatePublish=performance.now();
+   // Heartbeat completo: también reenvía el estado de todas las casillas.
+   // Así el invitado puede recuperarse aunque pierda un evento de cambio de fase.
+   roomRef.child("game").update({
+     time:G.t,phase:G.ph,round:G.round,
+     tileOk:T.map(t=>!!t.ok),tileSolid:T.map(t=>!!t.solid),
+     question:(G.questions&&G.questions[G.round-1])?.q||"",
+     options:G.displayOptions||[],
+     updatedAt:Date.now()
+   });
+ }
+ rn.render(sc,cam)}
+loop();
+</script>
+</body>
+</html>
